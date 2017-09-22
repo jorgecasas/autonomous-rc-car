@@ -18,7 +18,7 @@ client_socket = socket.socket()
 client_socket.connect(( server_ip, server_port))
 
 # Make a file-like object out of the connection
-print 'Trying to connect to streaming server in ' + server_ip + ':' + server_port;
+print 'Trying to connect to streaming server in ' + str( server_ip ) + ':' + str( server_port );
 
 connection = client_socket.makefile('wb')
 
