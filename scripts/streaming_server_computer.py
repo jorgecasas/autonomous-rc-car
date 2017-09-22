@@ -19,7 +19,7 @@ server_socket.bind(('0.0.0.0', server_port ))
 server_socket.listen(0)
 
 # Accept a single connection and make a file-like object out of it
-print 'Streaming server listening in %s %s' % (server_ip, server_port)
+print 'Streaming server listening in ' + server_ip + ':' + server_port;
 
 connection = server_socket.accept()[0].makefile('rb')
 try:
