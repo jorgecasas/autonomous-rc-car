@@ -18,6 +18,7 @@ client_socket = socket.socket()
 client_socket.connect(( server_ip, server_port))
 
 # Make a file-like object out of the connection
+print 'Trying to connect to streaming server in %s %s' % (server_ip, server_port)
 connection = client_socket.makefile('wb')
 
 try:
@@ -38,3 +39,4 @@ try:
 finally:
     connection.close()
     client_socket.close()
+    print 'Connection to streaming server has finished'
