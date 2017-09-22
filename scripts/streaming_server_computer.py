@@ -10,18 +10,20 @@ image_fps = 24
 # Player config: 
 #  - VLC: ['vlc', '--demux', 'h264', '-']
 #  - Mplayer: ['mplayer', '-fps', '60', '-cache', '1024', '-']
-player_config = ['mplayer', '-fps', str( image_fps ), '-cache', '1024', '-']
+#player_config = ['mplayer', '-fps', '60', '-cache', '1024', '-']
+player_config = ['vlc', '--demux', 'h264', '-']
 
 # Start a socket listening for connections on 0.0.0.0:8000
 # (0.0.0.0 means all interfaces)
+print( 'Streaming server listening in ' + str( server_ip ) + ':' + str( server_port ) );
 server_socket = socket.socket( socket.AF_INET, socket.SOCK_STREAM );
-server_socket.bind( ( '', server_port ) );
+server_socket.bind( ( server_ip, server_port ) );
 server_socket.listen(0);
 
 # Accept a single connection and make a file-like object out of it
-print( 'Streaming server listening in ' + str( server_ip ) + ':' + str( server_port ) );
-
 connection = server_socket.accept()[0].makefile('rb')
+print( 'Connection accepted!' );
+
 try:
     # Run a viewer with an appropriate command line (player_config) 
     player = subprocess.Popen( player_config, stdin=subprocess.PIPE)

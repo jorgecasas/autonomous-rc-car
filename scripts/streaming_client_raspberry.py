@@ -9,13 +9,13 @@ server_port = 8000
 image_width = 320
 image_height = 240
 image_fps = 24
-recording_time = 60
+recording_time = 5
 
 
 # Connect a client socket to my_server:8000
 # (change my_server to the hostname of your server)
 print( 'Trying to connect to streaming server in ' + str( server_ip ) + ':' + str( server_port ) );
-client_socket = socket.socket()
+client_socket = socket.socket( socket.AF_INET, socket.SOCK_STREAM )
 client_socket.connect(( server_ip, server_port))
 
 print( 'Connected to ' + str( server_ip ) + ':' + str( server_port ) + '!' );
@@ -34,7 +34,7 @@ try:
     
     # Start recording, sending the output to the connection for 60
     # seconds, then stop
-    camera.start_recording(connection, format='h264')
+    camera.start_recording( connection, format='h264')
     camera.wait_recording( recording_time )
     camera.stop_recording()
 
