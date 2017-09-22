@@ -14,12 +14,13 @@ recording_time = 60
 
 # Connect a client socket to my_server:8000
 # (change my_server to the hostname of your server)
+print( 'Trying to connect to streaming server in ' + str( server_ip ) + ':' + str( server_port ) );
 client_socket = socket.socket()
 client_socket.connect(( server_ip, server_port))
 
-# Make a file-like object out of the connection
-print 'Trying to connect to streaming server in ' + str( server_ip ) + ':' + str( server_port );
+print( 'Connected to ' + str( server_ip ) + ':' + str( server_port ) + '!' );
 
+# Make a file-like object out of the connection
 connection = client_socket.makefile('wb')
 
 try:
@@ -40,4 +41,4 @@ try:
 finally:
     connection.close()
     client_socket.close()
-    print 'Connection to streaming server has finished'
+    print( 'Connection to streaming server has finished' );

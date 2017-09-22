@@ -14,12 +14,12 @@ player_config = ['mplayer', '-fps', str( image_fps ), '-cache', '1024', '-']
 
 # Start a socket listening for connections on 0.0.0.0:8000
 # (0.0.0.0 means all interfaces)
-server_socket = socket.socket()
-server_socket.bind(('0.0.0.0', server_port ))
-server_socket.listen(0)
+server_socket = socket.socket( socket.AF_INET, socket.SOCK_STREAM );
+server_socket.bind( ( '', server_port ) );
+server_socket.listen(0);
 
 # Accept a single connection and make a file-like object out of it
-print 'Streaming server listening in ' + str( server_ip ) + ':' + str( server_port );
+print( 'Streaming server listening in ' + str( server_ip ) + ':' + str( server_port ) );
 
 connection = server_socket.accept()[0].makefile('rb')
 try:
@@ -39,4 +39,4 @@ finally:
     connection.close()
     server_socket.close()
     player.terminate()
-    print 'Streaming server finished'
+    print( 'Streaming server finished' );
