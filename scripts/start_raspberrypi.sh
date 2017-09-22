@@ -14,7 +14,7 @@ REMOTE_SERVER_IP=192.168.1.235;
 REMOTE_SERVER_PORT=8000;
 
 IMAGE_WIDTH=320;
-IMAGE_HEIGHT=240; 
+IMAGE_HEIGHT=240;
 
 
 # Use -gt 1 to consume two arguments per pass in the loop (e.g. each
@@ -46,6 +46,23 @@ while [[ $# -gt 0 ]]
           fi
         ;;
 
+        --width)
+          if [ "$2" = "" ]; then
+            ERROR="true";
+          else
+            IMAGE_WIDTH="$2"
+            shift # past argument
+          fi
+        ;;
+        --height)
+          if [ "$2" = "" ]; then
+            ERROR="true";
+          else
+            IMAGE_HEIGHT="$2"
+            shift # past argument
+          fi
+        ;;
+
         -h|--help)
           ERROR="true";
         ;;
@@ -71,6 +88,8 @@ if [ "$ERROR" = "true" ]; then
     echo -e "Options: ${COLOR_WHITE_UNDERLINED}[options]${COLOR_RESET}"
     echo -e "        ${COLOR_WHITE}--ip [IP]${COLOR_RESET} - Public remote server IP (default $REMOTE_SERVER_IP)"
     echo -e "        ${COLOR_WHITE}--port [PORT]${COLOR_RESET} - Public remote server PORT (default $REMOTE_SERVER_PORT)"
+    echo -e "        ${COLOR_WHITE}--width [WIDTH]${COLOR_RESET} - Image width in pixels (default $IMAGE_WIDTH)"
+    echo -e "        ${COLOR_WHITE}--height [WIDTH]${COLOR_RESET} - Image height in pixels (default $IMAGE_HEIGHT)"
     echo -e "        ${COLOR_WHITE}--help${COLOR_RESET} - This help"
     echo -e ""
     echo -e ""
