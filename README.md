@@ -8,12 +8,15 @@ Puedes encontrar más información en mi blog https://jorgecasas.github.io, dond
 * [Coche RC autónomo (II)](https://jorgecasas.github.io/2017/09/09/autonomous-rc-car-ii) - Primer análisis de requisitos del proyecto
 * [Coche RC autónomo (III)](https://jorgecasas.github.io/2017/09/12/autonomous-rc-car-iii) - Primeros pasos de configuración de la Raspberry Pi
 * [Coche RC autónomo (IV)](https://jorgecasas.github.io/2017/09/16/autonomous-rc-car-iv) - Configurando la videocámara en la Raspberry Pi
-* [Coche RC autónomo (V)](https://jorgecasas.github.io/2017/09/20/autonomous-rc-car-v) - Preparando el vehículo
+* [Coche RC autónomo (V)](https://jorgecasas.github.io/2017/09/24/autonomous-rc-car-v) - Instalando OpenCV (visión por computador)
+
 
 ## Scripts
 
 En el directorio **scripts** puedes encontrar:
 
-* _start_computer.sh_: Script para arrancar el servidor de vídeo en nuestro ordenador.
-* _start_raspberrypi.sh_: Script a utilizar en la Raspberry Pi, para arrancar el vehículo y comenzar la transmisión de vídeo a nuestro ordenador.
+* `start_computer.sh`: Script bash para arrancar el servidor de vídeo en nuestro ordenador, utilizando `netcat`
+* `start_raspberrypi.sh`: Script bash a utilizar en la Raspberry Pi, para arrancar el vehículo y comenzar la transmisión de vídeo a nuestro ordenador, utilizando `netcat`
+* `stream_client_raspberry.sh`: Script Python a ejecutarse en la Raspberry Pi para enviar imágenes a un servidor de vídeo en nuestro ordenador
+* `stream_server_computer.sh`: Script Python a ejecutarse en nuestro ordenador (o en la Raspberry Pi) para recibir imágenes y procesarlas con OpenCV
 
