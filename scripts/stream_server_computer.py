@@ -12,7 +12,7 @@ server_port = 8000
 image_fps = 24 
 
 
-
+# Class to handle the jpeg video stream received from client
 class VideoStreamHandler(socketserver.StreamRequestHandler):
  
     def handle(self):
@@ -41,7 +41,7 @@ class VideoStreamHandler(socketserver.StreamRequestHandler):
 
                     # reshape image
                     image_array = half_gray.reshape(1, 38400).astype(np.float32)
-                     
+                    
                     if cv2.waitKey(1) & 0xFF == ord('q'):
                         break
 
@@ -50,9 +50,10 @@ class VideoStreamHandler(socketserver.StreamRequestHandler):
         finally:
             print( 'Connection closed on videostream thread' )
 
-
+# Class to handle the different threads 
 class ThreadServer():
 
+    # Server thread to handle the video
     def server_thread(host, port):
         server = socketserver.TCPServer((host, port), VideoStreamHandler)
         server.serve_forever()
@@ -61,6 +62,6 @@ class ThreadServer():
     video_thread = threading.Thread(target=server_thread( server_ip, server_port))
     video_thread.start()
 
-
+# Starting thread server handler
 if __name__ == '__main__':
     ThreadServer( server_ip, server_port )

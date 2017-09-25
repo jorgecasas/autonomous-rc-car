@@ -12,11 +12,10 @@ server_port = 8000
 image_width = 320
 image_height = 240
 image_fps = 10
-recording_time = 5
+recording_time = 600
 
 
-# Connect a client socket to my_server:8000
-# (change my_server to the hostname of your server)
+# Connect a client socket to server_ip:server_port
 print( 'Trying to connect to streaming server in ' + str( server_ip ) + ':' + str( server_port ) );
 
 # create socket and bind host
@@ -40,7 +39,7 @@ try:
             connection.flush()
             stream.seek(0)
             connection.write(stream.read())
-            if time.time() - start > 600:
+            if time.time() - start > recording_time:
                 break
             stream.seek(0)
             stream.truncate()
