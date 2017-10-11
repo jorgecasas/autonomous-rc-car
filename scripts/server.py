@@ -8,7 +8,8 @@ import math
 
 # Config vars
 server_ip = '192.168.1.235'
-server_port = 8000
+server_port_camera = 8000
+server_port_ultrasonic = 8001
 image_fps = 24 
 image_width = 320
 image_height = 240
@@ -31,12 +32,29 @@ stroke_lines = [
    [ (image_width,image_height), ( int( image_width * 0.75 ), int( image_height/2 ) ), color_green, stroke_width ]
 ];
 
+# Global var (ultrasonic_data) to measure object distances
+ultrasonic_data = ' '
+
+# Class to handle data obtained from ultrasonic sensor
+class StreamHandlerUltrasonic(SocketServer.BaseRequestHandler):
+
+    data = ' '
+
+    def handle(self):
+        global ultrasonic_data
+        try:
+            while self.data:
+                self.data = self.request.recv(1024)
+                sensor_data = round(float(self.data), 1)
+                print( 'Ultrasonic sensor measure: ' + str( sensor_data ) + ' cm' )
+        finally:
+            print( 'Connection closed on ultrasonic thread' )
+
 
 # Class to handle the jpeg video stream received from client
-class VideoStreamHandler(socketserver.StreamRequestHandler):
+class StreamHandlerVideocamera(socketserver.StreamRequestHandler):
   
     def handle(self):
- 
         stream_bytes = b' '
 
         # stream video frames one by one
@@ -75,18 +93,28 @@ class VideoStreamHandler(socketserver.StreamRequestHandler):
         finally:
             print( 'Connection closed on videostream thread' )
 
+
 # Class to handle the different threads 
 class ThreadServer():
 
     # Server thread to handle the video
-    def server_thread(host, port):
-        server = socketserver.TCPServer((host, port), VideoStreamHandler)
+    def server_thread_camera(host, port):
+        server = socketserver.TCPServer((host, port), StreamHandlerVideocamera)
         server.serve_forever()
 
-    print( '+ Starting videostream server in ' + str( server_ip ) + ':' + str( server_port ) )
-    video_thread = threading.Thread(target=server_thread( server_ip, server_port))
-    video_thread.start()
+    # Server thread to handle ultrasonic distances to objects
+    def server_thread_ultrasonic(host, port):
+        server = socketserver.TCPServer((host, port), StreamHandlerUltrasonic)
+        server.serve_forever()
+
+    print( '+ Starting videocamera stream server in ' + str( server_ip ) + ':' + str( server_port_camera ) )
+    thread_videocamera = threading.Thread(target=server_thread_camera( server_ip, server_port_camera ) )
+    thread_videocamera.start()
+
+    print( '+ Starting ultrasonic stream server in ' + str( server_ip ) + ':' + str( server_port_ultrasonic ) )
+    thread_ultrasonic = threading.Thread(target=server_thread_ultrasonic( server_ip, server_port_ultrasonic ) )
+    thread_ultrasonic.start()
 
 # Starting thread server handler
 if __name__ == '__main__':
-    ThreadServer( server_ip, server_port )
+    ThreadServer( server_ip, server_port_camera, server_port_ultrasonic )

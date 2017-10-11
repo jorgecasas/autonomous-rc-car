@@ -4,20 +4,15 @@ El objetivo de este proyecto es construir un vehículo autónomo (un coche radio
 
 Puedes encontrar más información en mi blog https://jorgecasas.github.io, donde se va detallando todos los pasos necesarios.
 
-* [Coche RC autónomo (I)](https://jorgecasas.github.io/2017/08/23/autonomous-rc-car-i) - Introducción al proyecto
-* [Coche RC autónomo (II)](https://jorgecasas.github.io/2017/09/09/autonomous-rc-car-ii) - Primer análisis de requisitos del proyecto
-* [Coche RC autónomo (III)](https://jorgecasas.github.io/2017/09/12/autonomous-rc-car-iii) - Primeros pasos de configuración de la Raspberry Pi
-* [Coche RC autónomo (IV)](https://jorgecasas.github.io/2017/09/16/autonomous-rc-car-iv) - Configurando la videocámara en la Raspberry Pi
-* [Coche RC autónomo (V)](https://jorgecasas.github.io/2017/09/24/autonomous-rc-car-v) - Instalando OpenCV (visión por computador)
-* [Coche RC autónomo (VI)](https://jorgecasas.github.io/2017/09/27/autonomous-rc-car-vi) - Probando la cámara usando Python, OpenCV y streaming
+* [Coche RC autónomo - Índice de contenidos](https://jorgecasas.github.io/2017/08/22/autonomous-rc-car-construyendo-un-coche-autonomo)
+* [Github - jorgecasas/autonomous-rc-car](https://github.com/jorgecasas/autonomous-rc-car)
 
 
-## Scripts
+## Scripts y código compartido
 
-En el directorio **scripts** puedes encontrar:
+En el directorio **scripts** puedes encontrar los ficheros con el código compartido. Los principales para el vehículo autónomo son:
 
-* `start_computer.sh`: Script bash para arrancar el servidor de vídeo en nuestro ordenador, utilizando `netcat`
-* `start_raspberrypi.sh`: Script bash a utilizar en la Raspberry Pi, para arrancar el vehículo y comenzar la transmisión de vídeo a nuestro ordenador, utilizando `netcat`
-* `stream_client_raspberry.py`: Script Python a ejecutarse en la Raspberry Pi para enviar imágenes a un servidor de vídeo en nuestro ordenador
-* `stream_server_computer.py`: Script Python a ejecutarse en nuestro ordenador (o en la Raspberry Pi) para recibir imágenes y procesarlas con OpenCV
+* **Servidor `server.py`**: Servidor que controlará y realizará los procesos requeridos para la conducción autónoma (procesado de imágenes y datos de los sensores, red neuronal, control de servos para la conducción, etcétera). Durante fase de desarrollo puede utilizarse en nuestro ordenador de desarrollo, para luego pasar a ejecutarse en la propia Raspberry Pi que controlará el vehículo
+* **Cliente `client.py`**: Este código se ejecutará integramente en la Raspberry Pi, obteniendo y enviando datos de los sensores (cámara y sensor ultrasónico) al servidor (`server.py`)
 
+Otros ficheros contienen partes luego utilizados en estos otros scripts principales, y pueden servir de ejemplo para probar diferentes conceptos. Son los mismos que se utilizan y comentan en cada post que voy escribiendo sobre el proyecto [Coche RC autónomo](https://jorgecasas.github.io/2017/08/22/autonomous-rc-car-construyendo-un-coche-autonomo) en mi blog (como puede ser el utilizar la cámara de la Raspberry, configurar el sensor de ultrasonidos o crear un semáforo con Arduino)
