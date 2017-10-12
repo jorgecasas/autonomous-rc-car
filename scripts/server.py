@@ -19,6 +19,12 @@ color_yellow = (255, 238, 88)
 color_blue = (48, 79, 254)
 color_green = (0, 168, 0)
 
+# Font used in opencv images
+image_font = cv2.FONT_HERSHEY_SIMPLEX
+image_font_size = 1.0
+image_font_stroke = 1.0
+
+
 # Datos para lineas de control visual. Array stroke_lines contiene 3 componentes:
 #   0: Punto inicial (x,y)
 #   1: Punto final (x,y)
@@ -32,8 +38,11 @@ stroke_lines = [
    [ (image_width,image_height), ( int( image_width * 0.75 ), int( image_height/2 ) ), color_green, stroke_width ]
 ];
 
-# Global var (ultrasonic_data) to measure object distances
-ultrasonic_data = ' '
+# Global var (ultrasonic_data) to measure object distances (distance in cm)
+ultrasonic_sensor_distance = ' '
+ultrasonic_stop_distance = 25
+ultrasonic_text_position = ( 10, 10 )
+
 
 # Class to handle data obtained from ultrasonic sensor
 class StreamHandlerUltrasonic(socketserver.BaseRequestHandler):
@@ -41,13 +50,13 @@ class StreamHandlerUltrasonic(socketserver.BaseRequestHandler):
     data = ' '
 
     def handle(self):
-        global ultrasonic_data
+        global ultrasonic_sensor_distance
 
         try:
             while self.data:
                 self.data = self.request.recv(1024)
-                sensor_data = round(float(self.data), 1)
-                print( 'Ultrasonic sensor measure received: ' + str( sensor_data ) + ' cm' )
+                ultrasonic_sensor_distance = round(float(self.data), 1)
+                print( 'Ultrasonic sensor measure received: ' + str( ultrasonic_sensor_distance ) + ' cm' )
         finally:
             print( 'Connection closed on ultrasonic thread' )
 
@@ -57,6 +66,7 @@ class StreamHandlerVideocamera(socketserver.StreamRequestHandler):
   
     def handle(self):
         stream_bytes = b' '
+        global ultrasonic_sensor_distance
 
         # stream video frames one by one
         try:
@@ -79,7 +89,13 @@ class StreamHandlerVideocamera(socketserver.StreamRequestHandler):
                         for stroke in stroke_lines:
                             cv2.line( image, stroke[0], stroke[1], stroke[2], stroke[3])
 
-                    # Mostramos imagenes
+
+                    # Check ultrasonic sensor data (distance to objects in front of the car)
+                    if ultrasonic_sensor_distance is not None and ultrasonic_sensor_distance < ultrasonic_stop_distance:
+                        cv2.putText( image, 'OBSTACLE ' + str( ultrasonic_sensor_distance ) + 'cm', ultrasonic_text_position, image_font, image_font_size, color_red, image_font_stroke, cv2.LINE_AA)
+                        print( 'Stop, obstacle in front! >> Measure: ' + str( ultrasonic_sensor_distance ) + 'cm - Limit: '+ str(ultrasonic_stop_distance ) + 'cm' )
+
+                    # Show images
                     cv2.imshow('image', image)
                     cv2.imshow('mlp_image', half_gray)
 

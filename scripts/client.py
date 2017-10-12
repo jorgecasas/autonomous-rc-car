@@ -137,21 +137,21 @@ class ThreadClient():
 
     # Client thread to handle the video
     def client_thread_camera(host, port):
+        print( '+ Starting videocamera stream client in ' + str( host ) + ':' + str( port ) )
         StreamClientVideocamera()
 
     # Client thread to handle ultrasonic distances to objects
     def client_thread_ultrasonic(host, port):
+        print( '+ Starting ultrasonic stream server in ' + str( host ) + ':' + str( port ) )
         StreamClientUltrasonic()
 
-    print( '+ Starting ultrasonic stream server in ' + str( server_ip ) + ':' + str( server_port_ultrasonic ) )
     thread_ultrasonic = threading.Thread( name = 'thread_ultrasonic', target = client_thread_ultrasonic, args = ( server_ip, server_port_ultrasonic ) )
     thread_ultrasonic.start()
     
-    print( '+ Starting videocamera stream client in ' + str( server_ip ) + ':' + str( server_port_camera ) )
     thread_videocamera = threading.Thread( name = 'thread_videocamera', target = client_thread_camera, args = ( server_ip, server_port_camera ) )
     thread_videocamera.start()
 
 
 # Starting thread client handler
 if __name__ == '__main__':
-    ThreadClient( server_ip, server_port_camera, server_port_ultrasonic )
+    ThreadClient()
