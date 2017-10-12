@@ -36,12 +36,14 @@ stroke_lines = [
 ultrasonic_data = ' '
 
 # Class to handle data obtained from ultrasonic sensor
-class StreamHandlerUltrasonic(SocketServer.BaseRequestHandler):
+class StreamHandlerUltrasonic(socketserver.BaseRequestHandler):
 
     data = ' '
 
     def handle(self):
         global ultrasonic_data
+        print( 'Ultrasonic sensor started... waiting for data' )
+
         try:
             while self.data:
                 self.data = self.request.recv(1024)
@@ -107,13 +109,14 @@ class ThreadServer():
         server = socketserver.TCPServer((host, port), StreamHandlerUltrasonic)
         server.serve_forever()
 
+    print( '+ Starting ultrasonic stream server in ' + str( server_ip ) + ':' + str( server_port_ultrasonic ) )
+    thread_ultrasonic = threading.Thread(target=server_thread_ultrasonic( server_ip, server_port_ultrasonic ) )
+    thread_ultrasonic.start()
+    
     print( '+ Starting videocamera stream server in ' + str( server_ip ) + ':' + str( server_port_camera ) )
     thread_videocamera = threading.Thread(target=server_thread_camera( server_ip, server_port_camera ) )
     thread_videocamera.start()
 
-    print( '+ Starting ultrasonic stream server in ' + str( server_ip ) + ':' + str( server_port_ultrasonic ) )
-    thread_ultrasonic = threading.Thread(target=server_thread_ultrasonic( server_ip, server_port_ultrasonic ) )
-    thread_ultrasonic.start()
 
 # Starting thread server handler
 if __name__ == '__main__':

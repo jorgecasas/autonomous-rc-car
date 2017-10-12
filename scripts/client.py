@@ -29,6 +29,31 @@ GPIO_ultrasonic_echo = 24
 
 # Class to handle the ultrasonic sensor stream in client
 class StreamClientUltrasonic():
+
+    def measure():
+        # Measure distance from ultrasonic sensor. Send a trigger pulse
+        GPIO.output( GPIO_ultrasonic_trigger, True )
+        time.sleep( 0.00001 )
+        GPIO.output( GPIO_ultrasonic_trigger, False )
+        
+        # Get start time
+        start = time.time()
+
+        # Wait to receive any ultrasound in sensor (echo)
+        while GPIO.input( GPIO_ultrasonic_echo ) == 0:
+            start = time.time()
+
+        # We have received the echo. Wait for its end, getting stop time
+        while GPIO.input( GPIO_ultrasonic_echo ) == 1:
+            stop = time.time()
+
+        # Calculate time difference. Sound has gone from trigger to object and come back to sensor, so 
+        # we have to divide between 2. Formula: Distance = ( Time elapsed * Sound Speed ) / 2 
+        time_elapsed = stop-start
+        distance = (time_elapsed * 34300) / 2
+
+        return distance
+
   
     def __init__(self):
 
@@ -60,30 +85,6 @@ class StreamClientUltrasonic():
             print( 'Ultrasonic sensor stopped' )
             client_socket.close()
             GPIO.cleanup()
-
-    def measure():
-        # Measure distance from ultrasonic sensor. Send a trigger pulse
-        GPIO.output( GPIO_ultrasonic_trigger, True )
-        time.sleep( 0.00001 )
-        GPIO.output( GPIO_ultrasonic_trigger, False )
-        
-        # Get start time
-        start = time.time()
-
-        # Wait to receive any ultrasound in sensor (echo)
-        while GPIO.input( GPIO_ultrasonic_echo ) == 0:
-            start = time.time()
-
-        # We have received the echo. Wait for its end, getting stop time
-        while GPIO.input( GPIO_ultrasonic_echo ) == 1:
-            stop = time.time()
-
-        # Calculate time difference. Sound has gone from trigger to object and come back to sensor, so 
-        # we have to divide between 2. Formula: Distance = ( Time elapsed * Sound Speed ) / 2 
-        time_elapsed = stop-start
-        distance = (time_elapsed * 34300) / 2
-
-        return distance
 
 
 # Class to handle the jpeg video stream in client
