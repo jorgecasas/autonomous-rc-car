@@ -30,7 +30,7 @@ GPIO_ultrasonic_echo = 24
 # Class to handle the ultrasonic sensor stream in client
 class StreamClientUltrasonic():
 
-    def measure():
+    def measure(self):
         # Measure distance from ultrasonic sensor. Send a trigger pulse
         GPIO.output( GPIO_ultrasonic_trigger, True )
         time.sleep( 0.00001 )
@@ -73,12 +73,12 @@ class StreamClientUltrasonic():
 
         try:
             while True:
-                # Measure and send data to the host every 0.25 sec, 
+                # Measure and send data to the host every 0.5 sec, 
                 # pausing for a while to no lock Raspberry Pi processors
-                distance = measure()
+                distance = self.measure()
                 print( "Distance : %.1f cm" % distance )
-                client_socket.send( str( distance ) )
-                time.sleep( 0.25 )
+                client_socket.send( str( distance ).encode('utf-8') )
+                time.sleep( 0.5 )
 
         finally:
             # Ctrl + C to exit app (cleaning GPIO pins and closing socket connection)
@@ -144,11 +144,11 @@ class ThreadClient():
         StreamClientUltrasonic()
 
     print( '+ Starting ultrasonic stream server in ' + str( server_ip ) + ':' + str( server_port_ultrasonic ) )
-    thread_ultrasonic = threading.Thread(target=client_thread_ultrasonic( server_ip, server_port_ultrasonic ) )
+    thread_ultrasonic = threading.Thread( name = 'thread_ultrasonic', target = client_thread_ultrasonic, args = ( server_ip, server_port_ultrasonic ) )
     thread_ultrasonic.start()
     
     print( '+ Starting videocamera stream client in ' + str( server_ip ) + ':' + str( server_port_camera ) )
-    thread_videocamera = threading.Thread(target=client_thread_camera( server_ip, server_port_camera ) )
+    thread_videocamera = threading.Thread( name = 'thread_videocamera', target = client_thread_camera, args = ( server_ip, server_port_camera ) )
     thread_videocamera.start()
 
 
