@@ -42,13 +42,12 @@ class StreamHandlerUltrasonic(socketserver.BaseRequestHandler):
 
     def handle(self):
         global ultrasonic_data
-        print( 'Ultrasonic sensor started... waiting for data' )
 
         try:
             while self.data:
                 self.data = self.request.recv(1024)
                 sensor_data = round(float(self.data), 1)
-                print( 'Ultrasonic sensor measure: ' + str( sensor_data ) + ' cm' )
+                print( 'Ultrasonic sensor measure received: ' + str( sensor_data ) + ' cm' )
         finally:
             print( 'Connection closed on ultrasonic thread' )
 
@@ -90,34 +89,34 @@ class StreamHandlerVideocamera(socketserver.StreamRequestHandler):
                     if cv2.waitKey(1) & 0xFF == ord('q'):
                         break
 
-            cv2.destroyAllWindows()
-
         finally:
+            cv2.destroyAllWindows()
             print( 'Connection closed on videostream thread' )
 
 
 # Class to handle the different threads 
-class ThreadServer():
+class ThreadServer( object ):
 
     # Server thread to handle the video
     def server_thread_camera(host, port):
+        print( '+ Starting videocamera stream server in ' + str( host ) + ':' + str( port ) )
         server = socketserver.TCPServer((host, port), StreamHandlerVideocamera)
         server.serve_forever()
 
     # Server thread to handle ultrasonic distances to objects
     def server_thread_ultrasonic(host, port):
+        print( '+ Starting ultrasonic stream server in ' + str( host ) + ':' + str( port ) )
         server = socketserver.TCPServer((host, port), StreamHandlerUltrasonic)
         server.serve_forever()
 
-    print( '+ Starting ultrasonic stream server in ' + str( server_ip ) + ':' + str( server_port_ultrasonic ) )
-    thread_ultrasonic = threading.Thread(target=server_thread_ultrasonic( server_ip, server_port_ultrasonic ) )
+    thread_ultrasonic = threading.Thread( name = 'thread_ultrasonic', target = server_thread_ultrasonic, args = ( server_ip, server_port_ultrasonic ) )
     thread_ultrasonic.start()
     
-    print( '+ Starting videocamera stream server in ' + str( server_ip ) + ':' + str( server_port_camera ) )
-    thread_videocamera = threading.Thread(target=server_thread_camera( server_ip, server_port_camera ) )
+    thread_videocamera = threading.Thread( name = 'thread_videocamera', target = server_thread_camera, args = ( server_ip, server_port_camera ) )
     thread_videocamera.start()
+
 
 
 # Starting thread server handler
 if __name__ == '__main__':
-    ThreadServer( server_ip, server_port_camera, server_port_ultrasonic )
+    ThreadServer()
