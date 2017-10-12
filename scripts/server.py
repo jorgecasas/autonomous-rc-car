@@ -13,6 +13,7 @@ server_port_camera = 8000
 server_port_ultrasonic = 8001
 
 # Video configuration
+image_gray_enabled = False
 image_fps = 24 
 image_width = 640
 image_height = 480
@@ -94,11 +95,12 @@ class StreamHandlerVideocamera(socketserver.StreamRequestHandler):
                 if first != -1 and last != -1:
                     jpg = stream_bytes[first:last+2]
                     stream_bytes = stream_bytes[last+2:]
-                    gray = cv2.imdecode(np.fromstring(jpg, dtype=np.uint8), cv2.IMREAD_GRAYSCALE)
                     image = cv2.imdecode(np.fromstring(jpg, dtype=np.uint8), cv2.IMREAD_UNCHANGED)
 
                     # lower half of the image
-                    half_gray = gray[image_height_half:image_height, :]
+                    if image_gray_enabled:
+                        gray = cv2.imdecode(np.fromstring(jpg, dtype=np.uint8), cv2.IMREAD_GRAYSCALE)
+                        half_gray = gray[image_height_half:image_height, :]
 
                     # Dibujamos lineas "control"
                     if stroke_enabled:
@@ -115,7 +117,8 @@ class StreamHandlerVideocamera(socketserver.StreamRequestHandler):
 
                     # Show images
                     cv2.imshow('image', image)
-                    cv2.imshow('mlp_image', half_gray)
+                    if image_gray_enabled:
+                        cv2.imshow('mlp_image', half_gray)
     
                     if cv2.waitKey(1) & 0xFF == ord('q'):
                         break
