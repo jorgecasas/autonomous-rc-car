@@ -16,8 +16,8 @@ GPIO.setmode(GPIO.BCM)
 server_ip = '192.168.1.235'
 server_port_ultrasonic = 8001
 server_port_camera = 8000
-image_width = 320
-image_height = 240
+image_width = 640
+image_height = 480
 image_fps = 10
 recording_time = 600
 

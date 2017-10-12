@@ -11,8 +11,8 @@ server_ip = '192.168.1.235'
 server_port_camera = 8000
 server_port_ultrasonic = 8001
 image_fps = 24 
-image_width = 320
-image_height = 240
+image_width = 640
+image_height = 480
 
 color_red = (211, 47, 47)
 color_yellow = (255, 238, 88)
@@ -20,9 +20,9 @@ color_blue = (48, 79, 254)
 color_green = (0, 168, 0)
 
 # Font used in opencv images
-image_font = cv2.FONT_HERSHEY_SIMPLEX
+image_font = cv2.FONT_HERSHEY_PLAIN
 image_font_size = 1.0
-image_font_stroke = 1.0
+image_font_stroke = 2
 
 
 # Datos para lineas de control visual. Array stroke_lines contiene 3 componentes:
@@ -92,7 +92,7 @@ class StreamHandlerVideocamera(socketserver.StreamRequestHandler):
 
                     # Check ultrasonic sensor data (distance to objects in front of the car)
                     if ultrasonic_sensor_distance is not None and ultrasonic_sensor_distance < ultrasonic_stop_distance:
-                        cv2.putText( image, 'OBSTACLE ' + str( ultrasonic_sensor_distance ) + 'cm', ultrasonic_text_position, image_font, image_font_size, color_red, image_font_stroke, cv2.LINE_AA)
+                        cv2.putText( image, 'OBSTACLE ' + str( ultrasonic_sensor_distance ) + 'cm', ultrasonic_text_position, image_font, image_font_size, color_blue, image_font_stroke, cv2.LINE_AA)
                         print( 'Stop, obstacle in front! >> Measure: ' + str( ultrasonic_sensor_distance ) + 'cm - Limit: '+ str(ultrasonic_stop_distance ) + 'cm' )
 
                     # Show images
