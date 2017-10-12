@@ -56,12 +56,20 @@ class StreamHandlerUltrasonic(socketserver.BaseRequestHandler):
 
     def handle(self):
         global ultrasonic_sensor_distance
+        distance_float = 0.0
 
         try:
             print( 'Ultrasonic sensor measure: Receiving data in server!' )
             while self.data:
                 self.data = self.request.recv(1024)
-                ultrasonic_sensor_distance = round(float(self.data), 1)
+                try:
+                    distance_float = float( self.data )
+                except ValueError: 
+                    # No es float... porque hemos recibido algo del tipo b'123.123456.456' (es decir, por lag de la red
+                    # o sobrecarga de nuestro sistema hemos recibido dos valores antes de ser capaces de procesarlo)
+                    distance_float = 1000.0
+                
+                ultrasonic_sensor_distance = round( distance_float, 1)
                 if log_enabled: print( 'Ultrasonic sensor measure received: ' + str( ultrasonic_sensor_distance ) + ' cm' )
  
         finally:
