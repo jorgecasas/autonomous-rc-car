@@ -6,6 +6,7 @@ import io
 import socket
 import struct
 import picamera
+import threading
 
 # Configure Raspberry Pi GPIO in BCM mode
 GPIO.setmode(GPIO.BCM) 
@@ -141,13 +142,13 @@ class ThreadClient():
     def client_thread_ultrasonic(host, port):
         StreamClientUltrasonic()
 
+    print( '+ Starting ultrasonic stream server in ' + str( server_ip ) + ':' + str( server_port_ultrasonic ) )
+    thread_ultrasonic = threading.Thread(target=client_thread_ultrasonic( server_ip, server_port_ultrasonic ) )
+    thread_ultrasonic.start()
+    
     print( '+ Starting videocamera stream client in ' + str( server_ip ) + ':' + str( server_port_camera ) )
     thread_videocamera = threading.Thread(target=client_thread_camera( server_ip, server_port_camera ) )
     thread_videocamera.start()
-
-    print( '+ Starting ultrasonic stream client in ' + str( server_ip ) + ':' + str( server_port_ultrasonic ) )
-    thread_ultrasonic = threading.Thread(target=client_thread_ultrasonic( server_ip, server_port_ultrasonic ) )
-    thread_ultrasonic.start()
 
 
 # Starting thread client handler
