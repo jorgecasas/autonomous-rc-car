@@ -13,9 +13,12 @@ GPIO.setmode(GPIO.BCM)
 
 
 # Config vars. These IP and ports must be available in server firewall
+log_enabled = False
 server_ip = '192.168.1.235'
 server_port_ultrasonic = 8001
 server_port_camera = 8000
+
+# Camera configuration
 image_width = 640
 image_height = 480
 image_fps = 10
@@ -58,7 +61,7 @@ class StreamClientUltrasonic():
     def __init__(self):
 
         # Connect a client socket to server_ip:server_port_ultrasonic
-        print( 'Trying to connect to ultrasonic streaming server in ' + str( server_ip ) + ':' + str( server_port_ultrasonic ) );
+        print( '+ Trying to connect to ultrasonic streaming server in ' + str( server_ip ) + ':' + str( server_port_ultrasonic ) );
 
         # Configure GPIO pins (trigger as output, echo as input)
         GPIO.setup( GPIO_ultrasonic_trigger, GPIO.OUT )
@@ -76,13 +79,13 @@ class StreamClientUltrasonic():
                 # Measure and send data to the host every 0.5 sec, 
                 # pausing for a while to no lock Raspberry Pi processors
                 distance = self.measure()
-                print( "Distance : %.1f cm" % distance )
+                if log_enabled: print( "Ultrasonic sensor distance: %.1f cm" % distance )
                 client_socket.send( str( distance ).encode('utf-8') )
                 time.sleep( 0.5 )
 
         finally:
             # Ctrl + C to exit app (cleaning GPIO pins and closing socket connection)
-            print( 'Ultrasonic sensor stopped' )
+            print( 'Ultrasonic sensor connection finished!' );
             client_socket.close()
             GPIO.cleanup()
 
@@ -93,7 +96,7 @@ class StreamClientVideocamera():
     def __init__(self):
 
         # Connect a client socket to server_ip:server_port_camera
-        print( 'Trying to connect to videocamera streaming server in ' + str( server_ip ) + ':' + str( server_port_camera ) );
+        print( '+ Trying to connect to videocamera streaming server in ' + str( server_ip ) + ':' + str( server_port_camera ) );
 
         # create socket and bind host
         client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -125,10 +128,7 @@ class StreamClientVideocamera():
         finally:
             connection.close()
             client_socket.close()
-            print( 'JPEG streaming finished!' );
-
-
-
+            print( 'Videocamera stream connection finished!' );
 
  
 
@@ -137,14 +137,15 @@ class ThreadClient():
 
     # Client thread to handle the video
     def client_thread_camera(host, port):
-        print( '+ Starting videocamera stream client in ' + str( host ) + ':' + str( port ) )
+        print( '+ Starting videocamera stream client connection to ' + str( host ) + ':' + str( port ) )
         StreamClientVideocamera()
 
     # Client thread to handle ultrasonic distances to objects
     def client_thread_ultrasonic(host, port):
-        print( '+ Starting ultrasonic stream server in ' + str( host ) + ':' + str( port ) )
+        print( '+ Starting ultrasonic stream client connection to ' + str( host ) + ':' + str( port ) )
         StreamClientUltrasonic()
 
+    print( '+ Starting client - Logs ' + ( log_enabled and 'enabled' or 'disabled'  ) )
     thread_ultrasonic = threading.Thread( name = 'thread_ultrasonic', target = client_thread_ultrasonic, args = ( server_ip, server_port_ultrasonic ) )
     thread_ultrasonic.start()
     

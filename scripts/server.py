@@ -7,16 +7,26 @@ import numpy as np
 import math
 
 # Config vars
+log_enabled = False
 server_ip = '192.168.1.235'
 server_port_camera = 8000
 server_port_ultrasonic = 8001
+
+# Video configuration
 image_fps = 24 
 image_width = 640
 image_height = 480
+image_height_half = int( image_height / 2 )
 
-color_red = (211, 47, 47)
+# Global var (ultrasonic_data) to measure object distances (distance in cm)
+ultrasonic_sensor_distance = ' '
+ultrasonic_stop_distance = 25
+ultrasonic_text_position = ( 16, 16 )
+
+# Other vars
+color_blue = (211, 47, 47)
 color_yellow = (255, 238, 88)
-color_blue = (48, 79, 254)
+color_red = (48, 79, 254)
 color_green = (0, 168, 0)
 
 # Font used in opencv images
@@ -38,11 +48,6 @@ stroke_lines = [
    [ (image_width,image_height), ( int( image_width * 0.75 ), int( image_height/2 ) ), color_green, stroke_width ]
 ];
 
-# Global var (ultrasonic_data) to measure object distances (distance in cm)
-ultrasonic_sensor_distance = ' '
-ultrasonic_stop_distance = 25
-ultrasonic_text_position = ( 10, 10 )
-
 
 # Class to handle data obtained from ultrasonic sensor
 class StreamHandlerUltrasonic(socketserver.BaseRequestHandler):
@@ -53,10 +58,12 @@ class StreamHandlerUltrasonic(socketserver.BaseRequestHandler):
         global ultrasonic_sensor_distance
 
         try:
+            print( 'Ultrasonic sensor measure: Receiving data in server!' )
             while self.data:
                 self.data = self.request.recv(1024)
                 ultrasonic_sensor_distance = round(float(self.data), 1)
-                print( 'Ultrasonic sensor measure received: ' + str( ultrasonic_sensor_distance ) + ' cm' )
+                if log_enabled: print( 'Ultrasonic sensor measure received: ' + str( ultrasonic_sensor_distance ) + ' cm' )
+ 
         finally:
             print( 'Connection closed on ultrasonic thread' )
 
@@ -70,6 +77,7 @@ class StreamHandlerVideocamera(socketserver.StreamRequestHandler):
 
         # stream video frames one by one
         try:
+            print( 'Videocamera: Receiving images in server!' )
             while True:
                 stream_bytes += self.rfile.read(1024)
 
@@ -82,7 +90,7 @@ class StreamHandlerVideocamera(socketserver.StreamRequestHandler):
                     image = cv2.imdecode(np.fromstring(jpg, dtype=np.uint8), cv2.IMREAD_UNCHANGED)
 
                     # lower half of the image
-                    half_gray = gray[120:240, :]
+                    half_gray = gray[image_height_half:image_height, :]
 
                     # Dibujamos lineas "control"
                     if stroke_enabled:
@@ -92,16 +100,15 @@ class StreamHandlerVideocamera(socketserver.StreamRequestHandler):
 
                     # Check ultrasonic sensor data (distance to objects in front of the car)
                     if ultrasonic_sensor_distance is not None and ultrasonic_sensor_distance < ultrasonic_stop_distance:
-                        cv2.putText( image, 'OBSTACLE ' + str( ultrasonic_sensor_distance ) + 'cm', ultrasonic_text_position, image_font, image_font_size, color_blue, image_font_stroke, cv2.LINE_AA)
-                        print( 'Stop, obstacle in front! >> Measure: ' + str( ultrasonic_sensor_distance ) + 'cm - Limit: '+ str(ultrasonic_stop_distance ) + 'cm' )
+                        cv2.putText( image, 'OBSTACLE ' + str( ultrasonic_sensor_distance ) + 'cm', ultrasonic_text_position, image_font, image_font_size, color_red, image_font_stroke, cv2.LINE_AA)
+                        if log_enabled: print( 'Stop, obstacle in front! >> Measure: ' + str( ultrasonic_sensor_distance ) + 'cm - Limit: '+ str(ultrasonic_stop_distance ) + 'cm' )
+                    else:
+                        cv2.putText( image, 'NO OBSTACLE ' + str( ultrasonic_sensor_distance ) + 'cm', ultrasonic_text_position, image_font, image_font_size, color_green, image_font_stroke, cv2.LINE_AA)
 
                     # Show images
                     cv2.imshow('image', image)
                     cv2.imshow('mlp_image', half_gray)
-
-                    # reshape image
-                    image_array = half_gray.reshape(1, 38400).astype(np.float32)
-                    
+    
                     if cv2.waitKey(1) & 0xFF == ord('q'):
                         break
 
@@ -125,6 +132,7 @@ class ThreadServer( object ):
         server = socketserver.TCPServer((host, port), StreamHandlerUltrasonic)
         server.serve_forever()
 
+    print( '+ Starting server - Logs ' + ( log_enabled and 'enabled' or 'disabled'  ) )
     thread_ultrasonic = threading.Thread( name = 'thread_ultrasonic', target = server_thread_ultrasonic, args = ( server_ip, server_port_ultrasonic ) )
     thread_ultrasonic.start()
     
