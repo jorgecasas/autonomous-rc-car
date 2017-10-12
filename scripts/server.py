@@ -20,13 +20,13 @@ image_height = 480
 image_height_half = int( image_height / 2 )
 
 # Global var (ultrasonic_data) to measure object distances (distance in cm)
-ultrasonic_sensor_distance = ' '
+ultrasonic_sensor_distance = 1000.0
 ultrasonic_stop_distance = 25
 ultrasonic_text_position = ( 16, 16 )
 
 # Other vars
-color_blue = (211, 47, 47)
-color_yellow = (255, 238, 88)
+color_blue = (255, 0, 0)
+color_yellow = (0,255,255)
 color_red = (48, 79, 254)
 color_green = (0, 168, 0)
 
@@ -109,11 +109,14 @@ class StreamHandlerVideocamera(socketserver.StreamRequestHandler):
 
 
                     # Check ultrasonic sensor data (distance to objects in front of the car)
-                    if ultrasonic_sensor_distance is not None and ultrasonic_sensor_distance < ultrasonic_stop_distance:
-                        cv2.putText( image, 'OBSTACLE ' + str( ultrasonic_sensor_distance ) + 'cm', ultrasonic_text_position, image_font, image_font_size, color_red, image_font_stroke, cv2.LINE_AA)
-                        if log_enabled: print( 'Stop, obstacle in front! >> Measure: ' + str( ultrasonic_sensor_distance ) + 'cm - Limit: '+ str(ultrasonic_stop_distance ) + 'cm' )
-                    else:
-                        cv2.putText( image, 'NO OBSTACLE ' + str( ultrasonic_sensor_distance ) + 'cm', ultrasonic_text_position, image_font, image_font_size, color_green, image_font_stroke, cv2.LINE_AA)
+                    if ultrasonic_sensor_distance is not None:
+                        if ultrasonic_sensor_distance < ultrasonic_stop_distance:
+                            cv2.putText( image, 'OBSTACLE ' + str( ultrasonic_sensor_distance ) + 'cm', ultrasonic_text_position, image_font, image_font_size, color_red, image_font_stroke, cv2.LINE_AA)
+                            if log_enabled: print( 'Stop, obstacle in front! >> Measure: ' + str( ultrasonic_sensor_distance ) + 'cm - Limit: '+ str(ultrasonic_stop_distance ) + 'cm' )
+                        elif ultrasonic_sensor_distance < 1000.0:
+                            cv2.putText( image, 'NO OBSTACLE ' + str( ultrasonic_sensor_distance ) + 'cm', ultrasonic_text_position, image_font, image_font_size, color_green, image_font_stroke, cv2.LINE_AA)
+                        else: 
+                            cv2.putText( image, 'OBSTACLE DETECTION DISABLED', ultrasonic_text_position, image_font, image_font_size, color_yellow, image_font_stroke, cv2.LINE_AA)
 
                     # Show images
                     cv2.imshow('image', image)
