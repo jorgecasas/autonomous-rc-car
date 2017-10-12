@@ -24,6 +24,9 @@ image_height = 480
 image_fps = 10
 recording_time = 600
 
+# Ultrasonic sensor configuration
+ultrasonic_sensor_enabled = True
+
 # Definition of GPIO pins in Raspberry Pi 3 (GPIO pins schema needed!)
 #   18 - Trigger (output)
 #   24 - Echo (input)
@@ -146,8 +149,10 @@ class ThreadClient():
         StreamClientUltrasonic()
 
     print( '+ Starting client - Logs ' + ( log_enabled and 'enabled' or 'disabled'  ) )
-    thread_ultrasonic = threading.Thread( name = 'thread_ultrasonic', target = client_thread_ultrasonic, args = ( server_ip, server_port_ultrasonic ) )
-    thread_ultrasonic.start()
+
+    if ultrasonic_sensor_enabled:
+        thread_ultrasonic = threading.Thread( name = 'thread_ultrasonic', target = client_thread_ultrasonic, args = ( server_ip, server_port_ultrasonic ) )
+        thread_ultrasonic.start()
     
     thread_videocamera = threading.Thread( name = 'thread_videocamera', target = client_thread_camera, args = ( server_ip, server_port_camera ) )
     thread_videocamera.start()
