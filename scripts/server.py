@@ -43,7 +43,7 @@ image_font_stroke = 2
 #   3: Ancho de linea en px
 # Para activarlo/desactivarlo: stroke_enable = True|False
 stroke_enabled = True
-stroke_width = 4
+stroke_width = 3
 stroke_lines = [
    [ (0,image_height), ( int( image_width * 0.25 ), int( image_height/2 ) ), color_green, stroke_width ],
    [ (image_width,image_height), ( int( image_width * 0.75 ), int( image_height/2 ) ), color_green, stroke_width ]
@@ -79,10 +79,16 @@ class StreamHandlerUltrasonic(socketserver.BaseRequestHandler):
 
 # Class to handle the jpeg video stream received from client
 class StreamHandlerVideocamera(socketserver.StreamRequestHandler):
-  
+
+
     def handle(self):
         stream_bytes = b' '
         global ultrasonic_sensor_distance
+
+        # Object detection initialization (STOP sign, traffic light) using cascade classifiers
+        self.obj_detection = ObjectDetection()
+        self.stop_cascade = cv2.CascadeClassifier('cascade_xml/stop_sign.xml')
+        self.light_cascade = cv2.CascadeClassifier('cascade_xml/traffic_light.xml')
 
         # stream video frames one by one
         try:
@@ -96,16 +102,25 @@ class StreamHandlerVideocamera(socketserver.StreamRequestHandler):
                     jpg = stream_bytes[first:last+2]
                     stream_bytes = stream_bytes[last+2:]
                     image = cv2.imdecode(np.fromstring(jpg, dtype=np.uint8), cv2.IMREAD_UNCHANGED)
+                    image_gray = cv2.imdecode(np.fromstring(jpg, dtype=np.uint8), cv2.IMREAD_GRAYSCALE)
 
-                    # lower half of the image
+                    # Visualization of lower half of the gray image
                     if image_gray_enabled:
-                        gray = cv2.imdecode(np.fromstring(jpg, dtype=np.uint8), cv2.IMREAD_GRAYSCALE)
-                        half_gray = gray[image_height_half:image_height, :]
+                        half_gray = image_gray[image_height_half:image_height, :]
 
                     # Dibujamos lineas "control"
                     if stroke_enabled:
                         for stroke in stroke_lines:
                             cv2.line( image, stroke[0], stroke[1], stroke[2], stroke[3])
+
+                    # Object detection (STOP sign, traffic light), calculating distances to objects
+                    detection_stop = self.obj_detection.detect( self.stop_cascade, image_gray, image )
+                    detection_traffic_light = self.obj_detection.detect( self.light_cascade, image_gray, image )
+
+                    if detection_stop > 0:
+                        print( 'STOP sign detected!' )
+                    elif detection_traffic_light > 0:
+                        print( 'Traffic Light detected!' )
 
 
                     # Check ultrasonic sensor data (distance to objects in front of the car)
@@ -152,6 +167,70 @@ class ThreadServer( object ):
     
     thread_videocamera = threading.Thread( name = 'thread_videocamera', target = server_thread_camera, args = ( server_ip, server_port_camera ) )
     thread_videocamera.start()
+
+# Class to detect Traffic Lights and STOP sign using cascade classifiers
+class ObjectDetection(object):
+
+    def __init__(self):
+        self.red_light = False
+        self.green_light = False
+        self.yellow_light = False
+
+    def detect(self, cascade_classifier, image_gray, image):
+
+        # y camera coordinate of the target point 'P'
+        value = 0
+
+        # Minimum value to proceed traffic light state validation
+        threshold = 150     
+        
+        # Detection
+        cascade_obj = cascade_classifier.detectMultiScale(
+            image_gray,
+            scaleFactor=1.1,
+            minNeighbors=5,
+            minSize=(30, 30),
+            flags=cv2.CASCADE_SCALE_IMAGE
+        )
+
+        # draw a rectangle around the objects
+        for (x_pos, y_pos, width, height) in cascade_obj:
+            value = y_pos + height - 5
+
+            # STOP sign
+            if width/height == 1:
+                cv2.putText( image, 'STOP', (x_pos, y_pos), image_font, image_font_size, color_red, image_font_stroke )
+                cv2.rectangle( image, (x_pos+5, y_pos+5), (x_pos+width-5, y_pos+height-5), color_red, stroke_width )
+            
+            # Traffic lights
+            else:
+                roi = image_gray[y_pos+10:y_pos + height-10, x_pos+10:x_pos + width-10]
+                mask = cv2.GaussianBlur(roi, (25, 25), 0)
+                (minVal, maxVal, minLoc, maxLoc) = cv2.minMaxLoc(mask)
+                
+                # check if light is on
+                if maxVal - minVal > threshold:
+                    cv2.circle(roi, maxLoc, 5, (255, 0, 0), 2)
+                    
+                    # Red light
+                    if 1.0/8*(height-30) < maxLoc[1] < 4.0/8*(height-30):
+                        cv2.putText(image, 'Traffic Light RED', (x_pos, y_pos), image_font, image_font_size, color_red, image_font_stroke )
+                        cv2.rectangle( image, (x_pos+5, y_pos+5), (x_pos+width-5, y_pos+height-5), color_red, stroke_width )
+                        self.red_light = True
+                    
+                    # Green light
+                    elif 5.5/8*(height-30) < maxLoc[1] < height-30:
+                        cv2.putText(image, 'Traffic Light GREEN', (x_pos, y_pos), image_font, image_font_size, color_green, image_font_stroke )
+                        cv2.rectangle( image, (x_pos+5, y_pos+5), (x_pos+width-5, y_pos+height-5), color_green, stroke_width )
+                        self.green_light = True
+    
+                    # Yellow light
+                    elif 4.0/8*(height-30) < maxLoc[1] < 5.5/8*(height-30):
+                        cv2.putText(image, 'Traffic Light YELLOW', (x_pos, y_pos), image_font, image_font_size, color_yellow, image_font_stroke )
+                        cv2.rectangle( image, (x_pos+5, y_pos+5), (x_pos+width-5, y_pos+height-5), color_yellow, stroke_width )
+                        self.yellow_light = True
+
+        return value
 
 
 
