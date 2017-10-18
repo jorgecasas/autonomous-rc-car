@@ -168,6 +168,7 @@ class ThreadServer( object ):
     thread_videocamera = threading.Thread( name = 'thread_videocamera', target = server_thread_camera, args = ( server_ip, server_port_camera ) )
     thread_videocamera.start()
 
+
 # Class to detect Traffic Lights and STOP sign using cascade classifiers
 class ObjectDetection(object):
 
@@ -236,4 +237,11 @@ class ObjectDetection(object):
 
 # Starting thread server handler
 if __name__ == '__main__':
-    ThreadServer()
+    try:
+        ThreadServer()
+
+    except KeyboardInterrupt:
+        # Rename the folder that collected all of the test frames. Then make a new folder to collect next round of test frames.
+        #os.rename(  './test_frames_temp', './test_frames_SAVED/test_frames_{}'.format(timestr))
+        #os.makedirs('./test_frames_temp')
+        print ( 'Server stopped!' )
