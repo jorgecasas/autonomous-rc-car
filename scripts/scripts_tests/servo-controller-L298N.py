@@ -3,6 +3,9 @@ import RPi.GPIO as GPIO
 import time
 import curses
 
+print( '+ Starting servo control using keyboard' )
+print( '+ Use directional keys to steer right and left (or "s" to continue steering straight), accelerate forward and backwards, and Space to brake! Press "q" to quit.' )
+time.sleep(1.5) 
 
 # Initializing curses to get keyboard strokes
 screen = curses.initscr()
@@ -17,39 +20,21 @@ screen.keypad( True )
 # Choose BCM numbering schemes for GPIO pins in Raspberry Pi  
 GPIO.setmode(GPIO.BCM)  
 
-# GPIO pins configuration for DC Motor 1
-MOTOR_01_GPIO_ENABLER = 18
-MOTOR_01_GPIO_OUTPUT_01 = 23
-MOTOR_01_GPIO_OUTPUT_02 = 24
+# GPIO pins configuration for DC Motor 1 
+MOTOR_01_GPIO_FORWARD = 20
+MOTOR_01_GPIO_BACKWARD = 21
 
-# GPIO pins configuration for DC Motor 2
-MOTOR_02_GPIO_ENABLER = 13
-MOTOR_02_GPIO_OUTPUT_01 = 27
-MOTOR_02_GPIO_OUTPUT_02 = 17
+# GPIO pins configuration for DC Motor 2 
+MOTOR_02_GPIO_RIGHT = 27
+MOTOR_02_GPIO_LEFT = 17
 
 # Enabling GPIO configured pins as OUTPUT - Also, create objects PWM on ports defined with 50 Hertz configuration
-# PWM for DC Motor 1
-GPIO.setup( MOTOR_01_GPIO_ENABLER, GPIO.OUT)
-GPIO.setup( MOTOR_01_GPIO_OUTPUT_01, GPIO.OUT)
-GPIO.setup( MOTOR_01_GPIO_OUTPUT_02, GPIO.OUT)
+GPIO.setup( MOTOR_01_GPIO_FORWARD, GPIO.OUT)
+GPIO.setup( MOTOR_01_GPIO_BACKWARD, GPIO.OUT)
 
-MOTOR_01_PWM_ENABLER = GPIO.PWM( MOTOR_01_GPIO_ENABLER, 100)
-MOTOR_01_PWM_OUTPUT_01 = GPIO.PWM( MOTOR_01_GPIO_OUTPUT_01, 100)
-MOTOR_01_PWM_OUTPUT_02 = GPIO.PWM( MOTOR_01_GPIO_OUTPUT_02, 100)
+GPIO.setup( MOTOR_02_GPIO_RIGHT, GPIO.OUT)
+GPIO.setup( MOTOR_02_GPIO_LEFT, GPIO.OUT)
 
-# PWM for DC Motor 2
-GPIO.setup( MOTOR_02_GPIO_ENABLER, GPIO.OUT)
-GPIO.setup( MOTOR_02_GPIO_OUTPUT_01, GPIO.OUT)
-GPIO.setup( MOTOR_02_GPIO_OUTPUT_02, GPIO.OUT)
-
-MOTOR_02_PWM_ENABLER = GPIO.PWM( MOTOR_02_GPIO_ENABLER, 100)
-MOTOR_02_PWM_OUTPUT_01 = GPIO.PWM( MOTOR_02_GPIO_OUTPUT_01, 100)
-MOTOR_02_PWM_OUTPUT_02 = GPIO.PWM( MOTOR_02_GPIO_OUTPUT_02, 100)
-
-# Variables for outputs PWM
-PWM_OFF = 0
-PWM_MEDIUM = 60
-PWM_FULL = 100
 
 # Class for servo controlling
 class ServoController(object):
@@ -57,64 +42,40 @@ class ServoController(object):
     # Last key pressed
     LastKey = ""
 
-    def Stop():
-        MOTOR_01_PWM_OUTPUT_02.start( PWM_OFF )
-        MOTOR_01_PWM_OUTPUT_01.start( PWM_OFF )
-        MOTOR_01_PWM_ENABLER.start( PWM_OFF )
+    def Stop(self):
+        GPIO.output( MOTOR_01_GPIO_FORWARD, GPIO.LOW)
+        GPIO.output( MOTOR_01_GPIO_BACKWARD, GPIO.LOW)
+        GPIO.output( MOTOR_02_GPIO_LEFT, GPIO.LOW)
+        GPIO.output( MOTOR_02_GPIO_RIGHT, GPIO.LOW)
+        print( '=== Stop (brake) \r' )
 
-        MOTOR_02_PWM_OUTPUT_02.start( PWM_OFF )
-        MOTOR_02_PWM_ENABLER.start( PWM_OFF )
-        MOTOR_02_PWM_OUTPUT_01.start( PWM_OFF )
-        time.sleep(0.3) 
-        print ("Stop executed") 
+    def Straight(self):
+        GPIO.output( MOTOR_02_GPIO_LEFT, GPIO.LOW)
+        GPIO.output( MOTOR_02_GPIO_RIGHT, GPIO.LOW)
+        print('| | Continue straight \r')
 
-    def Left():
-        if LastKey != 'left' : Stop()
-        MOTOR_01_PWM_ENABLER.start( PWM_FULL )
-        MOTOR_01_PWM_OUTPUT_01.start( PWM_OFF )
-        MOTOR_01_PWM_OUTPUT_02.start( PWM_MEDIUM )
 
-        time.sleep(0.4)
-        MOTOR_02_PWM_ENABLER.start( PWM_OFF )
-        MOTOR_02_PWM_OUTPUT_01.start( PWM_FULL )
-        MOTOR_02_PWM_OUTPUT_02.start( PWM_MEDIUM )
-     
+    def Left(self):
+        if LastKey != 'left' : Straight()
+        GPIO.output( MOTOR_02_GPIO_RIGHT, GPIO.LOW)
+        GPIO.output( MOTOR_02_GPIO_LEFT, GPIO.HIGH)
+        print('\ \ Steer left \r')
 
-    def Right():
-        if LastKey != 'right' : Stop()
-        MOTOR_01_PWM_ENABLER.start( PWM_OFF )
-        MOTOR_01_PWM_OUTPUT_01.start( PWM_FULL )
-        MOTOR_01_PWM_OUTPUT_02.start( PWM_MEDIUM )
+    def Right(self):
+        if LastKey != 'right' : Straight()
+        GPIO.output( MOTOR_02_GPIO_LEFT, GPIO.LOW)
+        GPIO.output( MOTOR_02_GPIO_RIGHT, GPIO.HIGH)
+        print('/ / Steer right \r')
 
-        time.sleep(0.4)
-        MOTOR_02_PWM_ENABLER.start( PWM_FULL )
-        MOTOR_02_PWM_OUTPUT_01.start( PWM_OFF )
-        MOTOR_02_PWM_OUTPUT_02.start( PWM_MEDIUM )
-     
+    def Forward(self):
+        GPIO.output( MOTOR_01_GPIO_BACKWARD, GPIO.LOW)
+        GPIO.output( MOTOR_01_GPIO_FORWARD, GPIO.HIGH)
+        print('+++ Accelerate forward \r')
 
-    def Up(): 
-        MOTOR_01_PWM_ENABLER.start( PWM_OFF )
-        MOTOR_01_PWM_OUTPUT_01.start( PWM_FULL )
-        MOTOR_01_PWM_OUTPUT_02.start( PWM_MEDIUM )
-
-        time.sleep(0.3)
-        MOTOR_02_PWM_ENABLER.start( PWM_OFF )
-        MOTOR_02_PWM_OUTPUT_01.start( PWM_FULL )
-        MOTOR_02_PWM_OUTPUT_02.start( PWM_MEDIUM )
-
-        time.sleep(0.3) 
-
-    def Down(): 
-        MOTOR_01_PWM_ENABLER.start( PWM_FULL )
-        MOTOR_01_PWM_OUTPUT_01.start(0)
-        MOTOR_01_PWM_OUTPUT_02.start(60)
-
-        time.sleep(0.3)
-        MOTOR_02_PWM_ENABLER.start( PWM_FULL )
-        MOTOR_02_PWM_OUTPUT_01.start(0)
-        MOTOR_02_PWM_OUTPUT_02.start(60)
-
-        time.sleep(0.3)
+    def Backward(self): 
+        GPIO.output( MOTOR_01_GPIO_FORWARD, GPIO.LOW)
+        GPIO.output( MOTOR_01_GPIO_BACKWARD, GPIO.HIGH)
+        print('--- Accelerate backwards \r')
 
 try:
     servo_controller = ServoController()
@@ -127,44 +88,40 @@ try:
 
         elif char == ord(' '):
             LastKey="enter"
-            print ('Stop === \n')
             servo_controller.Stop()
+
+        elif char == ord('s'):
+            LastKey="enter"
+            servo_controller.Straight()
 
         elif char == curses.KEY_RIGHT:
             LastKey="right"
-            print ('Right >>> \n')
             servo_controller.Right() 
            
         elif char == curses.KEY_LEFT:
             LastKey="left"
-            print ('Left <<< \n')
             servo_controller.Left()
 
         elif char == curses.KEY_UP:
             LastKey="up"
-            print ('Accelerate +++ \n')
-            servo_controller.Up()
+            servo_controller.Forward()
 
         elif char == curses.KEY_DOWN:
             LastKey="down"
-            print ('Brake --- \n')
-            servo_controller.Down()
+            servo_controller.Backward()
 
 finally:
     # Shut down cleanly and clean GPIO output pins
-    print ('Ending servo controller')
     curses.nocbreak(); 
     screen.keypad( 0 ); 
     curses.echo()
     curses.endwin()
 
-    # Stop PWM output
-    MOTOR_01_PWM_ENABLER.stop()
-    MOTOR_01_PWM_OUTPUT_01.stop()
-    MOTOR_01_PWM_OUTPUT_02.stop()
-
-    MOTOR_02_PWM_ENABLER.stop()
-    MOTOR_02_PWM_OUTPUT_01.stop()
-    MOTOR_02_PWM_OUTPUT_02.stop()
-
+    # Stop GPIO and cleaning pins
+    GPIO.output( MOTOR_01_GPIO_FORWARD, GPIO.LOW)
+    GPIO.output( MOTOR_01_GPIO_BACKWARD, GPIO.LOW)
+    GPIO.output( MOTOR_02_GPIO_LEFT, GPIO.LOW)
+    GPIO.output( MOTOR_02_GPIO_RIGHT, GPIO.LOW)
     GPIO.cleanup()
+
+    print ('Ending servo controller')
