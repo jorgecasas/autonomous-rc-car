@@ -1,3 +1,5 @@
+# More info: https://jorgecasas.github.io/2017/08/22/autonomous-rc-car-construyendo-un-coche-autonomo
+#
 # Importamos librerias RPi.GPIO (entradas/salidas GPIO de Raspberry Pi) y time (para sleeps, etc...)
 # Requiere previamente instalarla (pip install RPi.GPIO)
 import RPi.GPIO as GPIO

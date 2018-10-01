@@ -1,3 +1,5 @@
+# More info: https://jorgecasas.github.io/2017/08/22/autonomous-rc-car-construyendo-un-coche-autonomo
+#
 # Import libraries
 import threading
 import socketserver
@@ -7,7 +9,7 @@ import numpy as np
 import math
 
 # Config vars
-log_enabled = False
+log_enabled = True
 server_ip = '192.168.1.235'
 server_port_camera = 8000
 server_port_ultrasonic = 8001
